@@ -12,7 +12,7 @@ public class TesterGame {
 	public static void main(String[] args) {
 		// start game engine - parameters - set show console to true and output
 		// filter to ERROR
-		new LoneflyGE(true, ILevels.SMALLTALK);
+		new LoneflyGE(true, ILevels.NONE);
 		// create new keyListener
 		LfGEKeyListener key = new LfGEKeyListener();
 		// create new demo class that extends activity pass it out key listener

@@ -22,7 +22,7 @@ public class CollisionsListener implements ContactListener {
 	private Activity activity;
 
 	public CollisionsListener(Activity activity) {
-		activity.getWorld().setContactListener(this);
+		activity.resources().getWorld().setContactListener(this);
 		this.activity = activity;
 	}
 
@@ -34,14 +34,14 @@ public class CollisionsListener implements ContactListener {
 		for (int i = 0; i < 2; i++) {
 			switch (ab[i].getBody().getType()) {
 			case DynamicBody:
-				for (GameObject gO : activity.getGameObjects()) {
+				for (GameObject gO : activity.resources().getGameObjects()) {
 					if (ab[i].getBody().equals(gO.getBody())) {
 						cObj[i] = gO;
 					}
 				}
 				break;
 			case KinematicBody:
-				for (Platform p : activity.getPlatforms()) {
+				for (Platform p : activity.resources().getPlatforms()) {
 					if (ab[i].getBody().equals(p.getBody())) {
 						cObj[i] = p;
 					}
@@ -62,14 +62,14 @@ public class CollisionsListener implements ContactListener {
 		for (int i = 0; i < 2; i++) {
 			switch (ab[i].getBody().getType()) {
 			case DynamicBody:
-				for (GameObject gO : activity.getGameObjects()) {
+				for (GameObject gO : activity.resources().getGameObjects()) {
 					if (ab[i].getBody().equals(gO.getBody())) {
 						gO.setTouching(null);
 					}
 				}
 				break;
 			case KinematicBody:
-				for (Platform p : activity.getPlatforms()) {
+				for (Platform p : activity.resources().getPlatforms()) {
 					if (ab[i].getBody().equals(p.getBody())) {
 						p.setTouching(null);
 					}

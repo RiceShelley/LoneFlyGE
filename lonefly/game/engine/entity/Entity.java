@@ -9,6 +9,7 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 
 import lonefly.game.LoneflyGE;
+import lonefly.game.Updater;
 import lonefly.game.engine.environment.Coordinate;
 import lonefly.game.engine.environment.Direction;
 import lonefly.game.engine.environment.Point;
@@ -23,7 +24,7 @@ import lonefly.game.engine.util.ILevels;
  * scaled before rendering by a predefined scale factor in LoneflyGE
  */
 
-public abstract class Entity implements Coordinate, Comparable<String> {
+public abstract class Entity implements Coordinate, Comparable<String>, Updater {
 
 	// name of Entity could be anything (ex. Jerry, bob, bill)
 	private String name;
@@ -33,6 +34,10 @@ public abstract class Entity implements Coordinate, Comparable<String> {
 	private float x;
 	private float y;
 	private float angle;
+	//level entity will be drawn on 
+	private int index;
+	// pScale not used unless entity is that of a box2d Entity
+	private float pScale;
 	// Box2D body
 	private Body body;
 	// primary box2D fixture
@@ -43,23 +48,29 @@ public abstract class Entity implements Coordinate, Comparable<String> {
 	private String touching = null;
 	// entity this entity is bound to if any otherwise null
 	private Entity bound = null;
+	// off set of bind
+	private Point bPoint = null;
 
-	public Entity(String name, float x, float y, float width, float height, World world, BodyType bodyType) {
+	public Entity(String name, float x, float y, float width, float height, float pScale, World world,
+			BodyType bodyType) {
 		this.height = height;
 		this.width = width;
 		this.x = x;
 		this.y = y;
 		this.name = name;
+		this.pScale = 0;
+		this.index = 0;
 		// if entity is supposed to be a box2D entity such as a platform or game
 		// object
 		if (world != null && bodyType != null) {
+			this.pScale = pScale;
 			// create body definition
 			BodyDef gOBodyDef = new BodyDef();
 			gOBodyDef.position.set(x, y);
 			gOBodyDef.type = bodyType;
 			// make entity a rectangle of some type
 			PolygonShape box = new PolygonShape();
-			box.setAsBox((this.width / LoneflyGE.PHYSICS_SCALE) / 2f, (this.height / LoneflyGE.PHYSICS_SCALE) / 2f);
+			box.setAsBox((this.width / pScale) / 2f, (this.height / pScale) / 2f);
 			// add body to world. store body in class private instance variable
 			// "body"
 			this.body = world.createBody(gOBodyDef);
@@ -124,24 +135,8 @@ public abstract class Entity implements Coordinate, Comparable<String> {
 		if (bound == null) {
 			// assign entity e to bound
 			bound = e;
-			// create new thread
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					// while still bound
-					while (bound != null) {
-						// Synchronize positions of entities + off set
-						x = bound.getX() + p.getX();
-						y = bound.getY() + p.getY();
-						// give cpu a lil rest
-						try {
-							Thread.sleep(20);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-					}
-				}
-			}).start();
+			// set bind offset
+			bPoint = p;
 		} else
 			// if entity is already bound
 			LoneflyGE.LOG.err(
@@ -187,9 +182,20 @@ public abstract class Entity implements Coordinate, Comparable<String> {
 	}
 
 	@Override
+	public void update() {
+		// if entity is bound to another update necessary values
+		if (bound != null) {
+			// Synchronize positions of entities + off set
+			setAngle(bound.getAngle());
+			setX(bound.getX() + bPoint.getX());
+			setY(bound.getY() + bPoint.getY());
+		}
+	}
+
+	@Override
 	public float getX() {
 		if (body != null)
-			return body.getPosition().x * LoneflyGE.PHYSICS_SCALE;
+			return body.getPosition().x * pScale;
 		else
 			return x;
 	}
@@ -197,7 +203,7 @@ public abstract class Entity implements Coordinate, Comparable<String> {
 	@Override
 	public float getY() {
 		if (body != null)
-			return body.getPosition().y * LoneflyGE.PHYSICS_SCALE;
+			return body.getPosition().y * pScale;
 		else
 			return y;
 	}
@@ -229,12 +235,16 @@ public abstract class Entity implements Coordinate, Comparable<String> {
 			return angle;
 		}
 	}
+	
+	public int getIndex() {
+		return index;
+	}
 
 	// setters
 	@Override
 	public void setX(float x) {
 		if (body != null)
-			body.setTransform(new Vector2(x, body.getPosition().y), 0f);
+			body.setTransform(new Vector2(x / pScale, body.getPosition().y), body.getAngle());
 		else
 			this.x = x;
 	}
@@ -242,7 +252,7 @@ public abstract class Entity implements Coordinate, Comparable<String> {
 	@Override
 	public void setY(float y) {
 		if (body != null)
-			body.setTransform(new Vector2(body.getPosition().x, y), 0f);
+			body.setTransform(new Vector2(body.getPosition().x, y / pScale), body.getAngle());
 		else
 			this.y = y;
 	}
@@ -269,5 +279,13 @@ public abstract class Entity implements Coordinate, Comparable<String> {
 		} else {
 			this.angle = angle;
 		}
+	}
+
+	public void setPScale(float pScale) {
+		this.pScale = pScale;
+	}
+	
+	public void setIndex(int index) {
+		this.index = index;
 	}
 }

@@ -10,17 +10,26 @@ import java.util.TimerTask;
 public class FramesPerSecond extends TimerTask {
 
 	// Average amount of frames rendered in the last 2 seconds
-	private float fps = 0;
-	//target fps 
-	private float target = 60;
+	private float fps;
+	// target fps
+	private float target;
 	// keeps track of how many frames are rendered in a second
 	private int framesRendered;
+	//resource manager 
+	//private ResourceManager rMan;
+	
+	public FramesPerSecond(ResourceManager rMan) {
+		//intialize instance varibles 
+		fps = 0;
+		target = 45;
+		//this.rMan = rMan;
+	}
 
 	// Increment frames rendered
 	public void tick() {
 		framesRendered++;
 	}
-
+	
 	// timer task overridden from super class
 	@Override
 	public void run() {
@@ -34,13 +43,19 @@ public class FramesPerSecond extends TimerTask {
 		framesRendered = 0;
 	}
 
+	// set target frames per second
+	public void setTarget(float target) {
+		this.target = target;
+	}
+
 	// get frames per second
 	public float getFps() {
 		return fps;
 	}
-	
-	//get target fps
+
+	// get target fps
 	public float getTarget() {
 		return target;
 	}
+	
 }
